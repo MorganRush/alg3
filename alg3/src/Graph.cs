@@ -7,15 +7,29 @@ using System.Threading.Tasks;
 
 namespace alg3.src
 {
-    internal class Graph
+    public class Graph
     {
-        private int[,] edge;
-        private int[] weight;
-        private int[,] ostovTree;
+        //private int[,] edge;
+        //private int[] weight;
+        //private int[,] ostovTree;
         private int countEdge;
         private int countNode;
+        private Edge[] edges;
+        private Edge[] ostovTree;
 
-        private const int infinity = 1000001;
+        private class Edge
+        {
+            public int firstNode;
+            public int secondNode;
+            public int weight;
+
+            public Edge(int firstNode, int secondNode, int weight)
+            {
+                this.firstNode = firstNode;
+                this.secondNode = secondNode;
+                this.weight = weight;
+            }
+        }
 
         private class LazyLeftHeap
         {
@@ -24,13 +38,75 @@ namespace alg3.src
             LazyLeftHeap rightChild;
         }
 
+        public Graph()
+        {
+            countNode = 6;
+            countEdge = 8;
+            edges = new Edge[countEdge];
+            edges[0] = new Edge(0, 1, 7);
+            edges[1] = new Edge(1, 2, 5);
+            edges[2] = new Edge(2, 3, 6);
+            edges[3] = new Edge(0, 3, 4);
+            edges[4] = new Edge(1, 3, 9);
+            edges[5] = new Edge(3, 4, 10);
+            edges[6] = new Edge(2, 4, 13);
+            edges[7] = new Edge(4, 5, 11);
+            #region old
+            //edge = new int[countEdge, 2];
+            //weight = new int[countEdge];
+            //ostovTree = new int[countNode - 1, 2];
+
+            //edge[0, 0] = 0;
+            //edge[0, 1] = 1;
+            //weight[0] = 7;
+
+            //edge[1, 0] = 1;
+            //edge[1, 1] = 2;
+            //weight[1] = 5;
+
+            //edge[2, 0] = 2;
+            //edge[2, 1] = 3;
+            //weight[2] = 6;
+
+            //edge[3, 0] = 0;
+            //edge[3, 1] = 3;
+            //weight[3] = 4;
+
+            //edge[4, 0] = 1;
+            //edge[4, 1] = 3;
+            //weight[4] = 9;
+
+            //edge[5, 0] = 3;
+            //edge[5, 1] = 4;
+            //weight[5] = 10;
+
+            //edge[6, 0] = 2;
+            //edge[6, 1] = 4;
+            //weight[6] = 13;
+
+            //edge[7, 0] = 4;
+            //edge[7, 1] = 5;
+            //weight[7] = 11;
+            #endregion
+        }
+
+        public void Test()
+        {
+            Boruvki();
+
+            for (int i = 0; i < ostovTree.GetLength(0); i++)
+            {
+                Console.WriteLine(ostovTree[i, 0] + " " + ostovTree[i, 1]);
+            }
+        }
+
         public Graph(int countEdge, int countNode)
         {
-            edge = new int[countEdge, 2];
-            weight = new int[countEdge];
-            ostovTree = new int[countNode, 2];
             this.countNode = countNode;
             this.countEdge = countEdge;
+            //edge = new int[countEdge, 2];
+            //weight = new int[countEdge];
+            //ostovTree = new int[countNode - 1, 2];
         }
 
         private void Boruvki()
@@ -43,7 +119,7 @@ namespace alg3.src
 
             for (int i = 0; i < countNode; i++)
             {
-                collectionTrees[i] = new List<int> { i };
+                collectionTrees.Add(new List<int> { i });
                 rootNodes.Add(i);
                 minEdgeForEveryCollection[i] = -1;
             }
@@ -80,13 +156,12 @@ namespace alg3.src
         private bool FindMinEdgeForEveryTree(List<List<int>> collectionTrees, ref int[] result) 
         {
             bool isFindMinEdge = false;
-            int length = collectionTrees.Count;
             int firstNode;
             int secondNode;
             int nameFirstTree;
             int nameSecondTree;
 
-            for (int i = 0; i < length; i++) //проходим по ребрам
+            for (int i = 0; i < edge.GetLength(0); i++) //проходим по ребрам
             {
                 firstNode = edge[i, 0];
                 secondNode = edge[i, 1];
@@ -121,12 +196,12 @@ namespace alg3.src
 
         private int FindNameTree(List<List<int>> collectionTrees, int node)
         {
-            foreach(List<int> list in collectionTrees)
+            for (int k = 0; k < collectionTrees.Count; k++)
             {
-                for (int i = 0; i < list.Count; i++)
+                for (int i = 0; i < collectionTrees[k].Count; i++)
                 {
-                    if (list[i] == node)
-                        return i;
+                    if (collectionTrees[k][i] == node)
+                        return k;
                 }
             }
             return -1;
