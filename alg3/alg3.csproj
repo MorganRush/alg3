@@ -45,6 +45,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Graph.cs" />
+    <Compile Include="src\ListNode.cs" />
+    <Compile Include="src\ListNodeAlgoritms.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

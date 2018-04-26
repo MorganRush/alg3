@@ -39,14 +39,12 @@ namespace alg3.src
             }
         }
 
-        private class LazyLeftHeap
+        public Graph()
         {
-            int key;
-            LazyLeftHeap leftChild;
-            LazyLeftHeap rightChild;
+
         }
 
-        public Graph()
+        public void Test()
         {
             countNode = 6;
             countEdge = 8;
@@ -61,13 +59,10 @@ namespace alg3.src
                 new Edge(2, 4, 13),
                 new Edge(4, 5, 11)
             };
-        }
 
-        public void Test()
-        {
-            //Boruvki();
+            Boruvki();
 
-            Kruskal();
+            //Kruskal();
 
             int sum = 0;
             for (int i = 0; i < ostovTree.Count; i++)
@@ -87,26 +82,30 @@ namespace alg3.src
             //ostovTree = new int[countNode - 1, 2];
         }
 
+        //ListNode[] collectionTrees;
+        //int[] minEdgeForEveryCollection;
+        ListNode[] collectionTrees;
+
         private void Boruvki()
         {
             ostovTree = new List<Edge>();
-            List<List<int>> collectionTrees = new List<List<int>>();
-            //индексы ребер
-            int [] minEdgeForEveryCollection = new int[countNode];
-            //int indexOstovTree = 0;
+            collectionTrees = new ListNode[countNode];
+            int[] sizeTrees = new int[countNode];
+            int[] minEdgeForEveryCollection = new int[countNode];
 
             for (int i = 0; i < countNode; i++)
             {
-                collectionTrees.Add(new List<int> { i });
+                collectionTrees[i] = new ListNode(null, i);
+                sizeTrees[i] = 1;
                 minEdgeForEveryCollection[i] = -1;
             }
 
             int firstNode;
             int secondNode;
-            int nameFirstCollection;
-            int nameSecondCollection;
+            int nameLiderFirstCollection;
+            int nameLiderSecondCollection;
 
-            while (FindIndexMinEdgeForEveryTree(collectionTrees, ref minEdgeForEveryCollection))
+            while (FindIndexMinEdgeForEveryTree(ref minEdgeForEveryCollection))
             {
                 for (int s = 0; s < countNode; s++)
                 {
@@ -114,14 +113,25 @@ namespace alg3.src
                     {
                         firstNode = edges[minEdgeForEveryCollection[s]].firstNode;
                         secondNode = edges[minEdgeForEveryCollection[s]].secondNode;
-                        nameFirstCollection = FindNameTree(collectionTrees, firstNode);
-                        nameSecondCollection = FindNameTree(collectionTrees, secondNode);
-                        if (nameFirstCollection != nameSecondCollection)
+                        nameLiderFirstCollection = collectionTrees[firstNode].FindLeader().indexNodeGrap;
+                        nameLiderSecondCollection = collectionTrees[secondNode].FindLeader().indexNodeGrap;
+                        if (nameLiderFirstCollection != nameLiderSecondCollection)
                         {
                             ostovTree.Add(edges[minEdgeForEveryCollection[s]]);
-                            collectionTrees = MergeTwoCollections(collectionTrees,
-                                nameFirstCollection, nameSecondCollection);
-                            //indexOstovTree++;
+                            if (ostovTree.Count == countNode - 1)
+                                return;
+                            if (sizeTrees[firstNode] < sizeTrees[secondNode])
+                            {
+                                collectionTrees[firstNode] = collectionTrees[firstNode].Merge(
+                                collectionTrees[secondNode]);
+                                sizeTrees[firstNode] += sizeTrees[secondNode];
+                            }
+                            else
+                            {
+                                collectionTrees[secondNode] = collectionTrees[secondNode].Merge(
+                                    collectionTrees[firstNode]);
+                                sizeTrees[secondNode] += sizeTrees[firstNode];
+                            }
                         }
                         minEdgeForEveryCollection[s] = -1;
                     }
@@ -129,104 +139,147 @@ namespace alg3.src
             }
         }
 
-        private bool FindIndexMinEdgeForEveryTree(List<List<int>> collectionTrees, ref int[] result) 
+        private bool FindIndexMinEdgeForEveryTree(ref int[] result) 
         {
             bool isFindMinEdge = false;
             int firstNode;
             int secondNode;
-            int nameFirstTree;
-            int nameSecondTree;
+            int nameLiderFirstCollection;
+            int nameLiderSecondCollection;
 
             for (int i = 0; i < edges.Count; i++) //проходим по ребрам
             {
                 firstNode = edges[i].firstNode;
                 secondNode = edges[i].secondNode;
-                nameFirstTree = FindNameTree(collectionTrees, firstNode);
-                nameSecondTree = FindNameTree(collectionTrees, secondNode);
-                if (nameFirstTree == -1 && nameSecondTree == -1)
-                    continue;
-                if (nameFirstTree != nameSecondTree)
+                nameLiderFirstCollection = collectionTrees[firstNode].FindLeader().indexNodeGrap;
+                nameLiderSecondCollection = collectionTrees[secondNode].FindLeader().indexNodeGrap;
+                //if (nameLiderFirstCollection == -1 && nameLiderSecondCollection == -1)
+                //    continue;
+                if (nameLiderFirstCollection != nameLiderSecondCollection)
                 {
-                    if (result[nameFirstTree] == -1)
+                    if (result[nameLiderFirstCollection] == -1)
                     {
-                        result[nameFirstTree] = i;
+                        result[nameLiderFirstCollection] = i;
                         isFindMinEdge = true;
                     }
-                    else if (edges[result[nameFirstTree]].weight > edges[i].weight)
+                    else if (edges[result[nameLiderFirstCollection]].weight > edges[i].weight)
                     {
-                        result[nameFirstTree] = i;
+                        result[nameLiderFirstCollection] = i;
                     }
-                    if (result[nameSecondTree] == -1)
+                    if (result[nameLiderSecondCollection] == -1)
                     {
-                        result[nameSecondTree] = i;
+                        result[nameLiderSecondCollection] = i;
                         isFindMinEdge = true;
                     }
-                    else if (edges[result[nameSecondTree]].weight > edges[i].weight)
+                    else if (edges[result[nameLiderSecondCollection]].weight > edges[i].weight)
                     {
-                        result[nameSecondTree] = i;
+                        result[nameLiderSecondCollection] = i;
                     }
                 }
             }
             return isFindMinEdge;
         }
 
-        private int FindNameTree(List<List<int>> collectionTrees, int node)
-        {
-            for (int k = 0; k < collectionTrees.Count; k++)
-            {
-                for (int i = 0; i < collectionTrees[k].Count; i++)
-                {
-                    if (collectionTrees[k][i] == node)
-                        return k;
-                }
-            }
-            return -1;
-        }
-
-        private List<List<int>> MergeTwoCollections(List<List<int>> collectionTrees, int first, int second)
-        {
-            foreach(int a in collectionTrees[second])
-            {
-                collectionTrees[first].Add(a);
-            }
-            collectionTrees.RemoveAt(second);
-            return collectionTrees;
-        }
-
         private void Kruskal()
         {
             ostovTree = new List<Edge>();
-            List<List<int>> collectionTrees = new List<List<int>>();
-            //индексы ребер
-            int[] minEdgeForEveryCollection = new int[countNode];
+            ListNode[] collectionTrees = new ListNode[countNode];
+            int[] sizeTrees = new int[countNode];
             edges.Sort();
 
             for (int i = 0; i < countNode; i++)
             {
-                collectionTrees.Add(new List<int> { i });
-                minEdgeForEveryCollection[i] = -1;
+                collectionTrees[i] = new ListNode(null, i);
+                sizeTrees[i] = 1;
             }
 
-            int nameFirstCollection;
-            int nameSecondCollection;
+            int firstNode;
+            int secondNode;
+            int nameLiderFirstCollection;
+            int nameLiderSecondCollection;
             for (int i = 0; i < edges.Count; i++)
             {
-                nameFirstCollection = FindNameTree(collectionTrees, edges[i].firstNode);
-                nameSecondCollection = FindNameTree(collectionTrees, edges[i].secondNode);
-                if (nameFirstCollection != nameSecondCollection)
+                firstNode = edges[i].firstNode;
+                secondNode = edges[i].secondNode;
+                nameLiderFirstCollection = collectionTrees[firstNode].FindLeader().indexNodeGrap;
+                nameLiderSecondCollection = collectionTrees[secondNode].FindLeader().indexNodeGrap;
+                if (nameLiderFirstCollection != nameLiderSecondCollection)
                 {
-                    collectionTrees = MergeTwoCollections(collectionTrees,
-                        nameFirstCollection, nameSecondCollection);
                     ostovTree.Add(edges[i]);
+                    if (ostovTree.Count == countNode - 1)
+                        return;
+                    if (sizeTrees[firstNode] < sizeTrees[secondNode])
+                    {
+                        collectionTrees[firstNode] = collectionTrees[firstNode].Merge(
+                        collectionTrees[secondNode]);
+                        sizeTrees[firstNode] += sizeTrees[secondNode];
+                    }
+                    else
+                    {
+                        collectionTrees[secondNode] = collectionTrees[secondNode].Merge( 
+                            collectionTrees[firstNode]);
+                        sizeTrees[secondNode] += sizeTrees[firstNode];
+                    }
                 }
             }
         }
 
-        
+        #region consts
+        private const int minWeightOfEdge = 1;
+
+        private const int maxWeightOfEdge = 1000000;
+
+        private const int countNodeForExperiments = 10000;
+
+        private const int firstMinCountEdge = 100000;
+
+        private const int firstMaxCountEdge = 10000000;
+
+        private const int firstStep = 100000;
+
+        private const int secondStep = 1000;
+
+        private const int secondMinCountEdge = 1000;
+
+        private const int secondMaxCountEdge = 100000;
+        #endregion
+
+        private Random random = new Random();
 
         public void FirstExperiment()
         {
+            edges = new List<Edge>();
+            countNode = countNodeForExperiments;
+            List<int> timeWork = new List<int>();
+            countEdge = firstMinCountEdge;
+            for (int i = 0; i < 100; i++)
+            {
+                countEdge += firstStep;
+                for (int j = 0; j < firstStep; j++)
+                {
+                    int firstNode;
+                    int secondNode;
+                    do
+                    {
+                        firstNode = random.Next(0, countNode - 1);
+                        secondNode = random.Next(0, countNode - 1);
+                    } while (firstNode == secondNode);
+                    edges.Add(new Edge(firstNode, secondNode,
+                        random.Next(minWeightOfEdge, maxWeightOfEdge)));
+                }
+                DateTime start = DateTime.Now;
+                //Kruskal();
+                Boruvki();
+                DateTime end = DateTime.Now;
+                timeWork.Add((end - start).Milliseconds + (end - start).Seconds * 1000);
+                Console.WriteLine("Эксперимент " + i);
+                Console.WriteLine("Время работы " + timeWork[i]);
+            }
 
+            foreach (int a in timeWork)
+            {
+                Console.WriteLine(a);
+            }
         }
     }
 }

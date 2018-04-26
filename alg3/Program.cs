@@ -12,15 +12,27 @@ namespace alg3
         static void Main(string[] args)
         {
             Graph graph = new Graph();
-            graph.Test();
+            graph.FirstExperiment();
+            //graph.Test();
             return;
-            List<int> list1 = new List<int> { 1, 2, 3 };
-            List<int> list2 = list1;
-            list2.RemoveAt(0);
-            foreach(int a in list2)
+            LinkedList<int> list1 = new LinkedList<int>();
+            list1.AddLast(1);
+            list1.AddLast(2);
+            list1.AddLast(3);
+            list1.AddFirst(4);
+            LinkedList<int> list2 = new LinkedList<int>();
+            list2.AddLast(6);
+            list2.AddLast(7);
+            list2.AddLast(8);
+
+            IEnumerable<int> enumerable = list1.Concat(list2);
+            list1 = new LinkedList<int>(enumerable);
+
+            foreach (int a in list1)
             {
                 Console.WriteLine(a);
             }
+            return;
         }
     }
 }
