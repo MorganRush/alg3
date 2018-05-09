@@ -14,6 +14,39 @@ namespace alg3.src
         private List<Edge> edges;
         private List<Edge> ostovTree;
 
+        private enum AlgoritmMethods { Boruvki, Kruskal }
+
+        private class ListNode
+        {
+            public ListNode parent;
+            public int indexNodeGrap;
+
+            public ListNode(ListNode node, int index)
+            {
+                parent = node;
+                indexNodeGrap = index;
+            }
+        }
+
+        private ListNode FindLeader(int indexListNode)
+        {
+            if (collectionTrees[indexListNode].parent == null)
+            {
+                return collectionTrees[indexListNode];
+            }
+            else
+            {
+                return collectionTrees[indexListNode] = 
+                    FindLeader(collectionTrees[indexListNode].parent.indexNodeGrap);
+            }
+        }
+
+        private ListNode Merge(int indexFirstList, int indexSecondList)
+        {
+            FindLeader(indexFirstList).parent = collectionTrees[indexSecondList];
+            return collectionTrees[indexFirstList];
+        }
+
         private class Edge: IComparable
         {
             public int firstNode;
@@ -73,17 +106,6 @@ namespace alg3.src
             Console.WriteLine("Summa: " + sum);
         }
 
-        public Graph(int countEdge, int countNode)
-        {
-            this.countNode = countNode;
-            this.countEdge = countEdge;
-            //edge = new int[countEdge, 2];
-            //weight = new int[countEdge];
-            //ostovTree = new int[countNode - 1, 2];
-        }
-
-        //ListNode[] collectionTrees;
-        //int[] minEdgeForEveryCollection;
         ListNode[] collectionTrees;
 
         private void Boruvki()
@@ -113,8 +135,8 @@ namespace alg3.src
                     {
                         firstNode = edges[minEdgeForEveryCollection[s]].firstNode;
                         secondNode = edges[minEdgeForEveryCollection[s]].secondNode;
-                        nameLiderFirstCollection = collectionTrees[firstNode].FindLeader().indexNodeGrap;
-                        nameLiderSecondCollection = collectionTrees[secondNode].FindLeader().indexNodeGrap;
+                        nameLiderFirstCollection = FindLeader(collectionTrees[firstNode].indexNodeGrap).indexNodeGrap;
+                        nameLiderSecondCollection = FindLeader(collectionTrees[secondNode].indexNodeGrap).indexNodeGrap;
                         if (nameLiderFirstCollection != nameLiderSecondCollection)
                         {
                             ostovTree.Add(edges[minEdgeForEveryCollection[s]]);
@@ -122,14 +144,14 @@ namespace alg3.src
                                 return;
                             if (sizeTrees[firstNode] < sizeTrees[secondNode])
                             {
-                                collectionTrees[firstNode] = collectionTrees[firstNode].Merge(
-                                collectionTrees[secondNode]);
+                                collectionTrees[firstNode] = Merge(
+                                    collectionTrees[firstNode].indexNodeGrap, collectionTrees[secondNode].indexNodeGrap);
                                 sizeTrees[firstNode] += sizeTrees[secondNode];
                             }
                             else
                             {
-                                collectionTrees[secondNode] = collectionTrees[secondNode].Merge(
-                                    collectionTrees[firstNode]);
+                                collectionTrees[secondNode] = Merge(
+                                    collectionTrees[secondNode].indexNodeGrap, collectionTrees[firstNode].indexNodeGrap);
                                 sizeTrees[secondNode] += sizeTrees[firstNode];
                             }
                         }
@@ -151,8 +173,8 @@ namespace alg3.src
             {
                 firstNode = edges[i].firstNode;
                 secondNode = edges[i].secondNode;
-                nameLiderFirstCollection = collectionTrees[firstNode].FindLeader().indexNodeGrap;
-                nameLiderSecondCollection = collectionTrees[secondNode].FindLeader().indexNodeGrap;
+                nameLiderFirstCollection = FindLeader(collectionTrees[firstNode].indexNodeGrap).indexNodeGrap;
+                nameLiderSecondCollection = FindLeader(collectionTrees[secondNode].indexNodeGrap).indexNodeGrap;
                 //if (nameLiderFirstCollection == -1 && nameLiderSecondCollection == -1)
                 //    continue;
                 if (nameLiderFirstCollection != nameLiderSecondCollection)
@@ -183,7 +205,7 @@ namespace alg3.src
         private void Kruskal()
         {
             ostovTree = new List<Edge>();
-            ListNode[] collectionTrees = new ListNode[countNode];
+            collectionTrees = new ListNode[countNode];
             int[] sizeTrees = new int[countNode];
             edges.Sort();
 
@@ -201,8 +223,8 @@ namespace alg3.src
             {
                 firstNode = edges[i].firstNode;
                 secondNode = edges[i].secondNode;
-                nameLiderFirstCollection = collectionTrees[firstNode].FindLeader().indexNodeGrap;
-                nameLiderSecondCollection = collectionTrees[secondNode].FindLeader().indexNodeGrap;
+                nameLiderFirstCollection = FindLeader(collectionTrees[firstNode].indexNodeGrap).indexNodeGrap;
+                nameLiderSecondCollection = FindLeader(collectionTrees[secondNode].indexNodeGrap).indexNodeGrap;
                 if (nameLiderFirstCollection != nameLiderSecondCollection)
                 {
                     ostovTree.Add(edges[i]);
@@ -210,14 +232,14 @@ namespace alg3.src
                         return;
                     if (sizeTrees[firstNode] < sizeTrees[secondNode])
                     {
-                        collectionTrees[firstNode] = collectionTrees[firstNode].Merge(
-                        collectionTrees[secondNode]);
+                        collectionTrees[firstNode] = Merge(
+                            collectionTrees[firstNode].indexNodeGrap, collectionTrees[secondNode].indexNodeGrap);
                         sizeTrees[firstNode] += sizeTrees[secondNode];
                     }
                     else
                     {
-                        collectionTrees[secondNode] = collectionTrees[secondNode].Merge( 
-                            collectionTrees[firstNode]);
+                        collectionTrees[secondNode] = Merge(
+                            collectionTrees[secondNode].indexNodeGrap, collectionTrees[firstNode].indexNodeGrap);
                         sizeTrees[secondNode] += sizeTrees[firstNode];
                     }
                 }
@@ -246,12 +268,12 @@ namespace alg3.src
 
         private Random random = new Random();
 
-        public void FirstExperiment()
+        private List<int> FirstExperiment(AlgoritmMethods algoritmMethods)
         {
             edges = new List<Edge>();
             countNode = countNodeForExperiments;
             List<int> timeWork = new List<int>();
-            countEdge = firstMinCountEdge;
+            countEdge = 0;
             for (int i = 0; i < 100; i++)
             {
                 countEdge += firstStep;
@@ -268,18 +290,70 @@ namespace alg3.src
                         random.Next(minWeightOfEdge, maxWeightOfEdge)));
                 }
                 DateTime start = DateTime.Now;
-                //Kruskal();
-                Boruvki();
+                if (algoritmMethods == AlgoritmMethods.Boruvki)
+                    Boruvki();
+                else
+                    Kruskal();
                 DateTime end = DateTime.Now;
                 timeWork.Add((end - start).Milliseconds + (end - start).Seconds * 1000);
                 Console.WriteLine("Эксперимент " + i);
                 Console.WriteLine("Время работы " + timeWork[i]);
             }
+            return timeWork;
+        }
 
-            foreach (int a in timeWork)
+        private List<int> SecondExperiment(AlgoritmMethods algoritmMethods)
+        {
+            edges = new List<Edge>();
+            countNode = countNodeForExperiments;
+            List<int> timeWork = new List<int>();
+            countEdge = 0;
+            for (int i = 0; i < 100; i++)
             {
-                Console.WriteLine(a);
+                countEdge += secondStep;
+                for (int j = 0; j < secondStep; j++)
+                {
+                    int firstNode;
+                    int secondNode;
+                    do
+                    {
+                        firstNode = random.Next(0, countNode - 1);
+                        secondNode = random.Next(0, countNode - 1);
+                    } while (firstNode == secondNode);
+                    edges.Add(new Edge(firstNode, secondNode,
+                        random.Next(minWeightOfEdge, maxWeightOfEdge)));
+                }
+                DateTime start = DateTime.Now;
+                if (algoritmMethods == AlgoritmMethods.Boruvki)
+                    Boruvki();
+                else
+                    Kruskal();
+                DateTime end = DateTime.Now;
+                timeWork.Add((end - start).Milliseconds + (end - start).Seconds * 1000);
+                Console.WriteLine("Эксперимент " + i);
+                Console.WriteLine("Время работы " + timeWork[i]);
             }
+            return timeWork;
+        }
+
+        public List<int> FirstExperimentForBoruvki()
+        {
+            return FirstExperiment(AlgoritmMethods.Boruvki);
+        }
+
+        public List<int> FirstExperimentForKruskal()
+        {
+            return FirstExperiment(AlgoritmMethods.Kruskal);
+        }
+
+        public List<int> SecondExperimentForBoruvki()
+        {
+            return SecondExperiment(AlgoritmMethods.Boruvki);
+        }
+
+        public List<int> SecondExperimentForKruskal()
+        {
+            return SecondExperiment(AlgoritmMethods.Kruskal);
         }
     }
 }
